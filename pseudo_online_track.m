@@ -1,6 +1,4 @@
 clear all; close all;
-search_folder = 'E:\Alan\180613\';
-
 struct_folder = 'Z:\holography\Data\Magnet\OnlineWhiskerTransfer\';
 do_plot = true;
 
@@ -37,6 +35,13 @@ for i=1:length(stims_strings)
     
     temp = stims_strings{i};
     stims(i) = str2double(temp);
+end
+
+%create search folder and wait for it to exist
+search_folder = strcat('E:\Alan\',datestr(now,'yymmdd'), '_', onlineStruct.mouseID, '_online\');
+
+while ~exist(search_folder, 'dir')
+    pause(.1)
 end
 
 %% analyze
