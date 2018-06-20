@@ -1,4 +1,4 @@
-function [centroids, good_frames] = track_whisker_single_video(FileTif, bg, do_display, detail_timing, do_save)
+function [centroids, good_frames] = track_whisker_single_video(FileTif, bg, do_display, detail_timing, do_save, do_record)
     catchDelta = 75;
     sensitivity_base = .15;
     tic
@@ -12,15 +12,22 @@ function [centroids, good_frames] = track_whisker_single_video(FileTif, bg, do_d
     end
     
     if detail_timing; disp('tiff load'); toc; tic; end
-    
+   
     %% convert and scale all the images - possibly unnecessary
     nu = single(FinalImage);
     nu = nu - min(nu(:));
     nu = nu./max(nu(:));
-    bg = mean(cat(3,mean(nu,3), bg),3);
+    bg = mean(cat(3,mean(nu,3), bg, bg, bg),3);
+    %bg = imopen(mean(cat(3,mean(nu,3), bg),3),strel('disk',10,8));
+    %bg =imgaussfilt(bg,3);
 
     if detail_timing; disp('preprocess'); toc; tic; end
-
+    
+     %% set up recorder 
+    if do_record
+        vw=VideoWriter(strrep(FileTif, '.tif', '_tracked_data.avi'),'Uncompressed AVI');
+        open(vw);
+    end
     %% variable to store centroids in
     centroids = zeros(2, size(FinalImage,3));
     good_frames = zeros(1, size(FinalImage,3));
@@ -48,9 +55,7 @@ function [centroids, good_frames] = track_whisker_single_video(FileTif, bg, do_d
             break %leave the while loop
         end
         processed = process(nu(50:end-50,50:end-50, search_frame), bg(50:end-50,50:end-50));
-      
         
-        cleaned=imopen(threshed+1,disk_rad_2);
         threshed=binarize(processed, sensitivity_base);
         sensitivity = sensitivity_base;
         cleaned=clean(threshed+1, disk_rad_1, disk_rad_4);
@@ -88,13 +93,15 @@ function [centroids, good_frames] = track_whisker_single_video(FileTif, bg, do_d
                 bbox = bbox(ind,:);
                 centroid = centroid(ind,:);
             end
+            % switch back to real frame of reference
+            centroid = centroid + 50;
             centroids(:,search_frame) = centroid.';
             good_frames(search_frame)=1;
             found_first = true; %mark that we found the first centroid
         end
             if do_display
                 subplot(2,3,1)
-                imagesc(rerange)
+                %imagesc(rerange)
                 subplot(2,3,2)
                 %imagesc(reranged);
                 subplot(2,3,3);
@@ -108,6 +115,19 @@ function [centroids, good_frames] = track_whisker_single_video(FileTif, bg, do_d
                 title(int2str(search_frame));
                 colormap('gray')
                 pause(.5)
+            end
+            if do_record
+                subplot(1,3,1); imagesc(processed); daspect([1 1 1]);
+                subplot(1,3,2); imagesc(cleaned); daspect([1 1 1]);
+                title(int2str(search_frame));
+                subplot(1,3,3); imagesc(nu(:,:,search_frame)); daspect([1 1 1]);
+                colormap('gray')
+                if ~isempty(bbox)
+                    hold on;scatter(centroid(1), centroid(2)); hold off;
+                end
+                pause(.1)
+                h=getframe(fig);
+                writeVideo(vw,h.cdata);
             end
         search_frame = search_frame+1;
     end
@@ -130,7 +150,6 @@ function [centroids, good_frames] = track_whisker_single_video(FileTif, bg, do_d
         pixX(pixX<1)=[]; pixY(pixY<1)=[];
         pixX(pixX>size(nu,2))=[]; pixY(pixY>size(nu,1))=[];
         processed = process(nu(pixY,pixX,i), bg(pixY,pixX));
-        
         threshed=binarize(processed, sensitivity_base);
         cleaned=clean(threshed+1, disk_rad_1, disk_rad_4);
         try
@@ -172,47 +191,53 @@ function [centroids, good_frames] = track_whisker_single_video(FileTif, bg, do_d
             centroids(:,i) = centroid.';
         end
         if do_display
-            subplot(2,3,1)
-                imagesc(rerange)
-                subplot(2,3,2)
-                %imagesc(reranged);
-                subplot(2,3,3);
-                imagesc(processed);
-                subplot(2,3,4);
-                imagesc(threshed);
-                subplot(2,3,5)
-                imagesc(cleaned);
-                if ~isempty(bbox)
-                    hold on; scatter(centroid(1), centroid(2)); hold off;
-                end
-                subplot(2,3,6)
-                imagesc(nu(:,:,i));
-                if ~isempty(bbox)
-                    hold on;
-                    scatter([bbox(1) bbox(1)+bbox(3)], [bbox(2) bbox(2)+bbox(4)]);
-                    scatter(centroid(1), centroid(2));
-                    hold off;
-                end
+            subplot(2,3,1); %imagesc(rerange)
+            subplot(2,3,2); %imagesc(reranged);
+            subplot(2,3,3); imagesc(processed);
+            subplot(2,3,4); imagesc(threshed);
+            subplot(2,3,5); imagesc(cleaned);
+            subplot(2,3,6); imagesc(nu(:,:,i));
+            if ~isempty(bbox)
+                hold on;
+                scatter([bbox(1) bbox(1)+bbox(3)], [bbox(2) bbox(2)+bbox(4)]);
+                scatter(centroid(1), centroid(2));
+                hold off;
+            end
             title(int2str(i));
             colormap('gray')
             pause(.05)
         end
+        if do_record
+            subplot(1,3,1); imagesc(processed); daspect([1 1 1]);
+            subplot(1,3,2); imagesc(cleaned); daspect([1 1 1]);
+            title(int2str(search_frame));
+            subplot(1,3,3); imagesc(nu(:,:,search_frame)); daspect([1 1 1]);
+            colormap('gray')
+            if ~isempty(bbox)
+                hold on;scatter(centroid(1), centroid(2)); hold off;
+            end
+            pause(.1)
+            h=getframe(fig);
+            writeVideo(vw,h.cdata);
+        end
     end
     if detail_timing; disp('other blobs'); toc; end
     if do_save
-    save(strrep(FileTif, '.tif', '_tracked_data.mat'), 'centroids', 'good_frames');
+        save(strrep(FileTif, '.tif', '_tracked_data.mat'), 'centroids', 'good_frames');
     end
     disp([int2str(missed) ' missed frames'])
     disp(['finished ' FileTif])
     toc
-    
+    if do_record; close(vw); end
 end
 
 function processed = process(crop_im, crop_bg)
     rerange = crop_im-crop_bg;
+    %lightground = imopen(rerange,strel('disk',25,8));
+    %rerange = rerange - lightground;
     rerange = rerange-min(rerange(:));
     rerange = rerange./max(rerange(:));
-    processed = imgaussfilt(rerange,2); %denoise
+    processed = imgaussfilt(rerange,4); %denoise
 end
 
 
@@ -224,6 +249,7 @@ end
 
 function cleaned = clean(im, disk_erode, disk_close)
     cleaned = imerode(im, disk_erode);
-    cleaned = imclose(cleaned, disk_close);
+    %cleaned=im;
+    %cleaned = imclose(cleaned, disk_close);
 end
 

@@ -60,7 +60,17 @@ while current_n < n_vids
             %disp('got background')
         elseif current_n > 2
             files = dir([search_folder '*.tif']);
-            [centroids, good_frames] = track_whisker_single_video([search_folder files(current_n-1).name], bg, false, false, true);
+            if mod(i,15)==0
+                figure(3)
+                [centroids, good_frames] = track_whisker_single_video(...
+                    [search_folder files(current_n-1).name],...
+                    bg, true, false, true, false);
+            else
+                [centroids, good_frames] = track_whisker_single_video(...
+                    [search_folder files(current_n-1).name],...
+                    bg, false, false, true, false);
+            end
+
             if do_plot
                 [gf, v, mp, pp, md, pd] = get_summarized_velocity(centroids, good_frames);
                 doUse = determine_if_use(mp, md);
