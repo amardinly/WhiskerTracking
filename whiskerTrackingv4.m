@@ -3,16 +3,18 @@ clear all; clc; close all;
 
 %settings
 catchDelta=150;
-display = 1;
+display = 0;
 record = 0;
 divineIntervention = 0;
 debug = 0;
 
-savename = '20180502_9159';
-savepath='C:\Users\Alan Mardinly\Documents\MATLAB\MagnetStimulationPaper\WhiskerData\';
-path='X:\holography\Data\Alan\WhiskerTracking\180502_9159\';
-
-
+savename = 'alan_track';
+%savepath='C:\Users\Alan Mardinly\Documents\MATLAB\MagnetStimulationPaper\WhiskerData\';
+%path='X:\holography\Data\Alan\WhiskerTracking\180502_9159\';
+path='E:\Alan\180615_8923\'
+savepath='E:\Alan\180615_8923\'
+%path = 'E:\Alan\180610_9245_1\';a
+%savepath=path;
 Fi = 1;
 fig = figure();
 
@@ -26,20 +28,29 @@ for n = 1:numel(D);
 end;
 %%
 for i  = 1:numel(Tiffindx);
-    
+    tic
+    i
     if record;
         vw=VideoWriter([savename ' ' num2str(i) '.avi'],'Uncompressed AVI');
         open(vw);
     end
     
     clear position;
-    ImgData=ScanImageTiffReader([path D(Tiffindx(i)).name]).data;
-    ImgData=permute(ImgData,[2 1 3]);
-    ImgData=single(ImgData);
+    %ImgData=ScanImageTiffReader([path D(Tiffindx(i)).name]).data;
+    FileTif=[path D(Tiffindx(i)).name];
+    InfoImage=imfinfo(FileTif); mImage=InfoImage(1).Width;
+    nImage=InfoImage(1).Height; NumberImages=length(InfoImage);
+    FinalImage=zeros(nImage,mImage,NumberImages,'uint16');
+    for j=1:NumberImages
+       FinalImage(:,:,j)=imread(FileTif,'Index',j);
+    end
+    %ImgData=permute(ImgData,[2 1 3]);
+    ImgData=single(FinalImage);
     bg(:,:,i) = imopen(mean(ImgData,3),strel('disk',10,8));
     
     
     if i == 1
+        disp('hey')
         figure();  imagesc(ImgData(:,:,1));
         disp('pick starting location');
         
@@ -226,6 +237,7 @@ for i  = 1:numel(Tiffindx);
         close(vw);
     end
     disp(['Finished file ' num2str(i) ' of ' num2str(numel(Tiffindx))]);
+    toc
 end;
 
 

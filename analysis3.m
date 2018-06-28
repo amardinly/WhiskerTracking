@@ -1,4 +1,4 @@
-search_folder =  'E:\Alan\180613_9122\';
+search_folder =  'E:\Alan\180615_8923\';
 %struct = load(['E:\Alan\180614_9122\180614_A.mat']);
 %struct = load(['Z:\holography\Data\hayley\expstruct\180612_7819_calib.mat']);
 %struct = struct.ExpStruct;
@@ -27,8 +27,8 @@ length(tracked_files)
 %%
 stims2 = Trials(1:end,1);
 %do tracked files -1 bc it seems to have an extra
-stop_pt = length(tracked_files)-1
-length_things = length(tracked_files)-1
+stop_pt = length(tracked_files)
+length_things = length(tracked_files)
 %%
 
 tracked_files = dir([search_folder '*_tracked_data.mat']);
@@ -186,7 +186,7 @@ figure; hold on;
 medians = [];
 for i = 1:length(stim_levels)
     lev = stim_levels(i);
-    disp([int2str(lev) ':   ' int2str(length(find(stims_with_bad_removed==lev)))])
+    %disp([int2str(lev) ':   ' int2str(length(find(stims_with_bad_removed==lev)))])
     vals = peak_durs(find(stims_with_bad_removed==lev));
     vals = vals(~isnan(vals));
     %get outlier values
