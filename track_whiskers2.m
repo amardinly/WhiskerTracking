@@ -228,7 +228,7 @@ for i  = 1:numel(files);
     if record;
         close(vw);
     end
-    disp(['Finished file ' num2str(i) ' of ' num2str(numel(Tiffindx))]);
+    disp(['Finished file ' num2str(i) ' of ' num2str(length(files))]);
     toc
 end
 s
