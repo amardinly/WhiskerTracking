@@ -24,7 +24,7 @@ diskRad10 = strel('disk',10,8);
 diskRad25 = strel('disk',25,8);
 
 files = dir([folder '*.tif']);
-%%
+Fi=1
 for i  = 1:numel(files);
     tic
    
@@ -44,10 +44,12 @@ for i  = 1:numel(files);
     end
     %ImgData=permute(ImgData,[2 1 3]);
     disp('finished loading tiff'); toc;
-    ImgData=single(FinalImage(15:end-15, 15:end-15,:));
+    ImgData=single(FinalImage);
    
     bg(:,:,i) = imopen(mean(ImgData,3),diskRad10);
-    
+    nogoM = zeros(size(bg,1), size(bg,2));
+    nogoM(15:end-15, 15:end-15)=1;
+    nogoM = ~nogoM;
     
     if i == 1 && isempty(startCentroid)
         figure();  imagesc(ImgData(:,:,1));
@@ -136,7 +138,7 @@ for i  = 1:numel(files);
                     centroid = centroid + [pixX(1) pixY(1)];
                     BB=rp(idx(W)).BoundingBox;
                     BB=round(BB);
-                    if sqrt(((centroid(1)-lastCentroid(1))^2) + ((centroid(2)-lastCentroid(2))^2))<catchDelta;
+                    if sqrt(((centroid(1)-lastCentroid(1))^2) + ((centroid(2)-lastCentroid(2))^2))<catchDelta ;
                         %                             disp('Found Correct Centroid');
                         exitFlag=1;
                         break;
@@ -174,7 +176,7 @@ for i  = 1:numel(files);
         
         if iv == 1;
             lastCentroid = centroid;
-        elseif (sqrt(((centroid(1)-lastCentroid(1))^2) + ((centroid(2)-lastCentroid(2))^2))>catchDelta) ==1;
+        elseif (sqrt(((centroid(1)-lastCentroid(1))^2) + ((centroid(2)-lastCentroid(2))^2))>catchDelta) ==1 || nogoM(round(centroid(2)),round(centroid(1)))==1;
             weirdFuckUpLog(Fi,1)=i;
             weirdFuckUpLog(Fi,2)=iv;
             disp(['missed frame ' num2str(iv)  ' on file ' num2str(i)]);
@@ -231,7 +233,7 @@ for i  = 1:numel(files);
     disp(['Finished file ' num2str(i) ' of ' num2str(length(files))]);
     toc
 end
-s
+
 
 
 
