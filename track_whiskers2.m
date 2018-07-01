@@ -1,7 +1,6 @@
 function track_whiskers2(folder, varargin)
 
 p = inputParser;
-   
 addParameter(p,'display',0);
 addParameter(p,'startCentroid',[]);
    
@@ -11,11 +10,18 @@ addParameter(p,'divineIntervention',0);
    
 addParameter(p,'debug',0);
    
-addParameter(p,'savename','alan_track');
+addParameter(p,'saveName','AlanTrackResults');
 addParameter(p,'saveFolder',folder);
 
 parse(p,varargin{:});
-settings = p.Result;
+settings = p.Results;
+startCentroid = settings.startCentroid;
+catchDelta = settings.catchDelta;
+record = 0;
+
+%precalculate all structuring elements for speed
+diskRad10 = strel('disk',10,8);
+diskRad25 = strel('disk',25,8);
 
 files = dir([folder '*.tif']);
 %%
@@ -23,7 +29,7 @@ for i  = 1:numel(files);
     tic
    
     if record;
-        vw=VideoWriter([savename ' ' num2str(i) '.avi'],'Uncompressed AVI');
+        vw=VideoWriter([settings.saveFolder settings.saveName ' ' num2str(i) '.avi'],'Uncompressed AVI');
         open(vw);
     end
     
@@ -37,8 +43,10 @@ for i  = 1:numel(files);
        FinalImage(:,:,j)=imread(FileTif,'Index',j);
     end
     %ImgData=permute(ImgData,[2 1 3]);
-    ImgData=single(FinalImage(15:end-15, 15:end-15,:);
-    bg(:,:,i) = imopen(mean(ImgData,3),strel('disk',10,8));
+    disp('finished loading tiff'); toc;
+    ImgData=single(FinalImage(15:end-15, 15:end-15,:));
+   
+    bg(:,:,i) = imopen(mean(ImgData,3),diskRad10);
     
     
     if i == 1 && isempty(startCentroid)
@@ -58,7 +66,7 @@ for i  = 1:numel(files);
         startCentroid = lastCentroid;
     end
     
-    if divineIntervention && i ~=1;
+    if settings.divineIntervention && i ~=1;
         figure();  imagesc(ImgData(:,:,1));
         lastCentroid = ginput(1);
         close;
@@ -96,7 +104,7 @@ for i  = 1:numel(files);
         I3 = abs(I3-max(I3(:)));
         I4=I3(pixY,pixX);
         
-        lightground = imopen(I4,strel('disk',25,8));%20
+        lightground = imopen(I4,diskRad25);%20
         
         I4=I4-lightground;
         
@@ -166,7 +174,7 @@ for i  = 1:numel(files);
         
         if iv == 1;
             lastCentroid = centroid;
-        elseif (sqrt(((centroid(1)-lastCentroid(1))^2) + ((centroid(2)-lastCentroid(2))^2))>catchDelta) || nogoM(round(centroid(2)),round(centroid(1)))==1;
+        elseif (sqrt(((centroid(1)-lastCentroid(1))^2) + ((centroid(2)-lastCentroid(2))^2))>catchDelta) ==1;
             weirdFuckUpLog(Fi,1)=i;
             weirdFuckUpLog(Fi,2)=iv;
             disp(['missed frame ' num2str(iv)  ' on file ' num2str(i)]);
@@ -186,7 +194,7 @@ for i  = 1:numel(files);
         
         
         
-        if display;
+        if settings.display;
             subplot(1,2,1)
             imagesc(I3); colormap gray; caxis([-100 300]);  axis square; axis off;
             hold on;
@@ -203,7 +211,7 @@ for i  = 1:numel(files);
             axis square; axis off;
             hold on
             caxis([0 20])
-            if debug
+            if settings.debug
                 waitforbuttonpress
                 iv
             end
@@ -223,10 +231,10 @@ for i  = 1:numel(files);
     disp(['Finished file ' num2str(i) ' of ' num2str(numel(Tiffindx))]);
     toc
 end
+s
 
 
 
-
-save([savepath savename '.mat'],'WhiskerTrace','StartpixX','StartpixY','weirdFuckUpLog','startCentroid');
+save([settings.saveFolder settings.saveName '.mat'],'WhiskerTrace','StartpixX','StartpixY','weirdFuckUpLog','startCentroid');
 
 end
