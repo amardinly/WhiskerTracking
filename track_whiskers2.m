@@ -86,7 +86,11 @@ for i  = 1:numel(files);
     pixY(pixY>size(ImgData,1))=[];
     
     
-    
+    if i<4;
+        background = min(bg,[],3);
+    else
+        background = min(bg(:,:,i-3:i),[],3);
+    end
     for iv=1:size(ImgData,3);
         
         
@@ -96,11 +100,7 @@ for i  = 1:numel(files);
         I2=imgaussfilt(I,2);
         
         %add cumultive background?
-        if i<4;
-            background = min(bg,[],3);
-        else
-            background = min(bg(:,:,i-3:i),[],3);
-        end
+        
         
         I3 = I2 - background;
         I3 = abs(I3-max(I3(:)));
