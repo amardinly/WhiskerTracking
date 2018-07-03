@@ -1,4 +1,14 @@
-function [good_frames, usable_pre_cents, usable_dur_cents, x_disp, y_disp, disp] = get_summarized_displacement(centroids, good_frames)
+function [good_frames, usable_pre_cents, usable_dur_cents, x_disp, y_disp, disp] = get_summarized_displacement(centroids, good_frames, track_type)
+if isempty(track_type)
+    track_type = 'hayley';
+end
+if strcmp(track_type, 'alan')
+    centroids = centroids.';
+    bad_frames = good_frames;
+    
+    good_frames = ones(1, size(centroids,2));
+    good_frames(bad_frames) = 0;
+end
 
     filt_cent = sgolayfilt(centroids.',3,5);
     filt_cent = filt_cent.';

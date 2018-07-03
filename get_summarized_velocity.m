@@ -1,6 +1,16 @@
-function [good_frames, velocities, mean_pre, peak_pre, mean_dur, peak_dur] = get_summarized_velocity(centroids, good_frames)
+function [good_frames, velocities, mean_pre, peak_pre, mean_dur, peak_dur] = get_summarized_velocity(centroids, good_frames, track_type)
+if isempty(track_type)
+    track_type = 'hayley';
+end
+if strcmp(track_type, 'alan')
+    centroids = centroids.';
+    bad_frames = good_frames;
+    
+    good_frames = ones(1, size(centroids,2));
+    good_frames(bad_frames) = 0;
+end
 good_frames = find(good_frames==1);
-velocities = zeros(1, size(centroids,2));
+velocities = nan(1, size(centroids,2));
 filt_cent = sgolayfilt(centroids.',3,5);
 filt_cent = filt_cent.';
 for j=2:length(good_frames)
