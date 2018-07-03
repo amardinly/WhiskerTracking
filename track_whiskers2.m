@@ -24,9 +24,10 @@ diskRad10 = strel('disk',10,8);
 diskRad25 = strel('disk',25,8);
 
 files = dir([folder '*.tif']);
-Fi=1
+Fi=1;
+weirdFuckUpLog = [];
 for i  = 1:numel(files);
-    tic
+    timer = tic;
    
     if record;
         vw=VideoWriter([settings.saveFolder settings.saveName ' ' num2str(i) '.avi'],'Uncompressed AVI');
@@ -35,6 +36,7 @@ for i  = 1:numel(files);
     
     clear position;
     %ImgData=ScanImageTiffReader([path D(Tiffindx(i)).name]).data;
+    try
     FileTif=[folder files(i).name];
     InfoImage=imfinfo(FileTif); mImage=InfoImage(1).Width;
     nImage=InfoImage(1).Height; NumberImages=length(InfoImage);
@@ -43,9 +45,11 @@ for i  = 1:numel(files);
        FinalImage(:,:,j)=imread(FileTif,'Index',j);
     end
     %ImgData=permute(ImgData,[2 1 3]);
-    disp('finished loading tiff'); toc;
     ImgData=single(FinalImage);
-   
+    catch
+        disp(['unable to read file ' folder files(i).name])
+        continue
+    end
     bg(:,:,i) = imopen(mean(ImgData,3),diskRad10);
     nogoM = zeros(size(bg,1), size(bg,2));
     nogoM(15:end-15, 15:end-15)=1;
@@ -179,7 +183,7 @@ for i  = 1:numel(files);
         elseif (sqrt(((centroid(1)-lastCentroid(1))^2) + ((centroid(2)-lastCentroid(2))^2))>catchDelta) ==1 || nogoM(round(centroid(2)),round(centroid(1)))==1;
             weirdFuckUpLog(Fi,1)=i;
             weirdFuckUpLog(Fi,2)=iv;
-            disp(['missed frame ' num2str(iv)  ' on file ' num2str(i)]);
+            %disp(['missed frame ' num2str(iv)  ' on file ' num2str(i)]);
             Fi = Fi +1;
             lastCentroid = startCentroid;
             pixX = StartpixX;
@@ -197,8 +201,11 @@ for i  = 1:numel(files);
         
         
         if settings.display;
-            subplot(1,2,1)
-            imagesc(I3); colormap gray; caxis([-100 300]);  axis square; axis off;
+            subplot(1,3,1); imagesc(I2); colormap gray; %caxis([-100 300]);
+            axis square; axis off;
+            subplot(1,3,2)
+            imagesc(I3); colormap gray; %caxis([-100 300]);
+            axis square; axis off;
             hold on;
             scatter(centroid(1),centroid(2));
             text(20,70,['t = ' num2str(round(1000*(iv/300))) ' ms']);
@@ -207,12 +214,10 @@ for i  = 1:numel(files);
             
             pause(0.1);
             hold off;
-            subplot(1,2,2);
-            hold off
-            imagesc(I5);
+            subplot(1,3,3);
             axis square; axis off;
-            hold on
             caxis([0 20])
+            imagesc(bw); axis square; axis off; 
             if settings.debug
                 waitforbuttonpress
                 iv
@@ -231,7 +236,7 @@ for i  = 1:numel(files);
         close(vw);
     end
     disp(['Finished file ' num2str(i) ' of ' num2str(length(files))]);
-    toc
+    toc(timer)
 end
 
 
