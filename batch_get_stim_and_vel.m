@@ -2,7 +2,7 @@ searchFolder =  '/mnt/modulation/amardinly/MagnetTracking/AlanTrackResults/AllRe
 behaviorFolder =  '/mnt/excitation/amardinly/BehaviorData/';
 
 trackFiles = dir([searchFolder '*.mat']);
-
+%%
 for findex = 1:length(trackFiles)
     file = trackFiles(findex).name;
     %remove .mat from file name
@@ -63,10 +63,14 @@ end
 
 %%
 for findex = 1:length(trackFiles)
+    clear data struct stims traces summaryTab
+    if findex == 2
+        continue 
+    end
     file = trackFiles(findex).name;
     struct = load([searchFolder file]);
     if isfield(struct, 'behData');
-    traces = data.WhiskerTrace;
+    traces = struct.WhiskerTrace;
     weirdFuckUpLog = struct.weirdFuckUpLog;
     stims = struct.behData.Trials(:,1);
     %guesstimate how many of these we actually want to track
@@ -87,7 +91,7 @@ for findex = 1:length(trackFiles)
             bad_frames = find(weirdFuckUpLog(1,:)==vindex);
         end
         [gf, v, fv, mp, pp, md, pd] = ...
-            get_summarized_velocity(centroids, bad_frames, 'alan');
+            get_summarized_velocity_readonly(centroids, bad_frames, 'alan');
         data.velocities_per_vid{vindex} = v;
         data.filtered_velocities{vindex} = v;
         data.good_framesy{vindex} = gf;
@@ -130,17 +134,20 @@ for findex = 1:length(trackFiles)
     errorbar(stim_levels, summary(:,5), summary(:,7));
     title(file); pause(.2);
     % do k means to exclude files
-    velMat = zeros(length(traces), length(data.velocities_per_vid{5})-1);
+    velMat = zeros(length(traces), length(data.velocities_per_vid{3})-1);
     for i = 1:length(data.velocities_per_vid)
-        if size(data.velocities_per_vid{i}(2:end), 2) < size(data,2)
-            velMat(i, 1:size(velocities_per_vid{i}(2:end),2)) = data.velocities_per_vid{i}(2:end);
+        if size(data.velocities_per_vid{i}(2:end), 2) < size(velMat,2)
+            velMat(i, 1:size(data.velocities_per_vid{i}(2:end),2)) = data.velocities_per_vid{i}(2:end);
+        elseif size(data.velocities_per_vid{i}(2:end), 2) > size(velMat,2)
+            velMat(i, :) = data.velocities_per_vid{i}(2:size(velMat,2)+1);
+
         else
             velMat(i, :) = data.velocities_per_vid{i}(2:end);
         end
     end
     zdata=zscore(velMat,[],2);
      Widx = kmeans(zdata,2);
-     if find(stims(find(Widx==1))==max(stim_levels)) >find(stims(find(Widx==2))==max(stim_levels))
+     if length(find(stims(find(Widx==1))==max(stim_levels))) >length(find(stims(find(Widx==2))==max(stim_levels)))
          good_idx = 1
      else
          good_idx=2
@@ -151,7 +158,7 @@ for findex = 1:length(trackFiles)
     for i = 1:length(stim_levels)
         lev = stim_levels(i)
         %disp([int2str(lev) ':   ' int2str(length(find(stims_with_bad_removed==lev)))])
-        vals = data.peak_durs(find(stims_with_bad_removed==lev)+1);
+        vals = data.peak_durs(find(stims_with_bad_removed==lev));
         vals = vals(~isnan(vals));
         errorbar(lev, mean(vals), std(vals)/sqrt(length(vals)), 'Color', 'black');
         scatter(lev, median(vals), 60, 'MarkerEdgeColor', 'red', 'MarkerFaceColor', 'red', 'MarkerFaceAlpha', .2);
@@ -160,7 +167,7 @@ for findex = 1:length(trackFiles)
     end
     hold off;
 
-    save([search_folder file], 'data', 'summaryTab', '-append');
+    %save([searchFolder file], 'data', 'summaryTab', '-append');
     end
 end
    %%     

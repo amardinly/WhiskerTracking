@@ -241,7 +241,7 @@ end
 
 
 
-
+disp('hey')
 save([settings.saveFolder settings.saveName '.mat'],'WhiskerTrace','StartpixX','StartpixY','weirdFuckUpLog','startCentroid');
 
 end
