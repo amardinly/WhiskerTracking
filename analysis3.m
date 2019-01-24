@@ -76,7 +76,6 @@ end
 %dont_use([17,22, 23,24,25])=1;
 %%
 figure;
-tracked_frames = zeros(1,length(good_framesy));
 %tracked_frames = zeros(1,length(good_framesy));
 for i=1:100
     subplot(10,10,i);
