@@ -1,5 +1,6 @@
-function [good_frames, velocities, mean_pre, peak_pre, mean_dur, peak_dur] = get_summarized_velocity(centroids, good_frames, track_type)
-if ~exist('track_type')
+
+function [good_frames, velocities, filt_velocities, mean_pre, peak_pre, mean_dur, peak_dur] = get_summarized_velocity(centroids, good_frames, track_type)
+if isempty(track_type)
     track_type = 'hayley';
 end
 if strcmp(track_type, 'alan')
@@ -21,6 +22,8 @@ for j=2:length(good_frames)
     vel = distance/(the_frame-prev_frame);
     velocities(the_frame) = vel;
 end
+filt_velocities = sgolayfilt(velocities,3,5);
+
 usable_pre = good_frames(good_frames < 15 & good_frames > 5);
 usable_dur = good_frames(good_frames < 45 & good_frames > 17);
 mean_pre = mean(velocities(usable_pre));

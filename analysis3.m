@@ -77,18 +77,19 @@ end
 %%
 figure;
 tracked_frames = zeros(1,length(good_framesy));
-for i=1:length(velocities_per_vid)
-    subplot(ceil(sqrt(length(velocities_per_vid))),ceil(sqrt(length(velocities_per_vid))),i);
+%tracked_frames = zeros(1,length(good_framesy));
+for i=1:100
+    subplot(10,10,i);
     
-    tracked_frames(i) = length(good_framesy{i});
-    plot(good_framesy{i}(6:end),velocities_per_vid{i}(good_framesy{i}(6:end)));
-    if dont_use(i)
-        plot(good_framesy{i}(6:end),velocities_per_vid{i}(good_framesy{i}(6:end)), 'Color','red');
-    end
+    %tracked_frames(i) = length(good_framesy{i});
+    plot(velocities_per_vid{i});
+    %if dont_use(i)
+    %    plot(velocities_per_vid{i}), 'Color','red');
+    %end
     hold on;
     temp=ylim;
     plot([15 15], [0 temp(2)], 'Color', 'black')
-        title(i);
+        title(num2str(stims(i)));
 end
 
 %%
