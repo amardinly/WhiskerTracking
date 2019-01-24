@@ -18,7 +18,7 @@ settings = p.Results;
 startCentroid = settings.startCentroid;
 catchDelta = settings.catchDelta;
 record = 0;
-
+mkdir([settings.saveFolder settings.saveName '/']);
 %precalculate all structuring elements for speed
 diskRad10 = strel('disk',10,8);
 diskRad25 = strel('disk',25,8);
@@ -35,12 +35,17 @@ for i  = 1:numel(files);
     
     clear position;
     %ImgData=ScanImageTiffReader([path D(Tiffindx(i)).name]).data;
+    try
     FileTif=[folder files(i).name];
     InfoImage=imfinfo(FileTif); mImage=InfoImage(1).Width;
     nImage=InfoImage(1).Height; NumberImages=length(InfoImage);
     FinalImage=zeros(nImage,mImage,NumberImages,'uint16');
     for j=1:NumberImages
        FinalImage(:,:,j)=imread(FileTif,'Index',j);
+    end
+    catch
+        disp('something went wrong loading a tiff')
+        continue
     end
     %ImgData=permute(ImgData,[2 1 3]);
     disp('finished loading tiff'); toc;
@@ -224,6 +229,7 @@ for i  = 1:numel(files);
         end
         
         position(iv,:)=centroid;
+        save([settings.saveFolder settings.saveName '/' files(i).name '.mat'],'position');
     end;
     
     WhiskerTrace{i}=position;

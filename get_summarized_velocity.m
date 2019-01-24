@@ -1,5 +1,5 @@
 function [good_frames, velocities, mean_pre, peak_pre, mean_dur, peak_dur] = get_summarized_velocity(centroids, good_frames, track_type)
-if isempty(track_type)
+if ~exist('track_type')
     track_type = 'hayley';
 end
 if strcmp(track_type, 'alan')

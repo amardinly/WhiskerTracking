@@ -11,8 +11,8 @@ debug = 0;
 savename = 'alan_track';
 %savepath='C:\Users\Alan Mardinly\Documents\MATLAB\MagnetStimulationPaper\WhiskerData\';
 %path='X:\holography\Data\Alan\WhiskerTracking\180502_9159\';
-path='E:\Alan\180615_8923\'
-savepath='E:\Alan\180615_8923\'
+path='E:\Alan\180621_8923\'
+savepath='E:\Alan\180621_8923\'
 %path = 'E:\Alan\180610_9245_1\';a
 %savepath=path;
 Fi = 1;
@@ -211,7 +211,7 @@ for i  = 1:numel(Tiffindx);
             %             rectangle('position',[pixX(1) pixY(1) numel(pixX) numel(pixY)])
             %             rectangle('position',[BB(1) BB(2) BB(3) BB(4)],'EdgeColor','r')
             
-            pause(0.001);
+            pause(0.1);
             hold off;
             subplot(1,2,2);
             hold off
@@ -254,11 +254,13 @@ pixels_per_mm = D/(10);
 FPS = 300;
 %% Review Traces
 usefulTraces=nan(size(WhiskerTrace,2),1);
-imgFrames = find(ExpStruct.motorTrigger);
+%imgFrames = find(ExpStruct.motorTrigger);
 Ti=imgFrames(1):imgFrames(end);
 Ti = Ti/10;
 Ti = round(Ti);
 %%  load('180415_D.mat');
+
+
 for i = 1:size(WhiskerTrace,2)
     position=WhiskerTrace{i};
     

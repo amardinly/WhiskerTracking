@@ -1,5 +1,5 @@
-vidFolder = '/mnt/modulation/frankenshare/MagnetTracking/';
-saveFolder = '/mnt/modulation/amardinly/MagnetTracking/AlanTrackResults/';
+vidFolder = 'E:/Alan/';
+saveFolder = 'E:/Alan/Results/';
 files = dir(vidFolder);
 files(1:2) = [];
 dirFlags = [files.isdir];
@@ -7,14 +7,14 @@ dirFlags = [files.isdir];
 subFolders = files(dirFlags);
 [dates, idx] = sort([subFolders.datenum]);
 subFolders = subFolders(idx);
-subFolders = subFolders(1:16); %temp, only track the oldest ones on this computer
+subFolders = subFolders(32:42); %temp, only track the oldest ones on this computer
 % select name of directories
 subFolders = {subFolders.name};
 startCentroids = {};
 trackFolder = ones(1, length(subFolders)); %will remove folders if empty, ect
 %get start centroid for folder
 for foldind = 1:length(subFolders)
-    if contains(subFolders{foldind}, 'online') %for now don't track calibration
+    if ~isempty(strfind(subFolders{foldind}, 'online')) %for now don't track calibration
         trackFolder(foldind) = 0;
         continue
     end
@@ -40,7 +40,7 @@ end
 
 %%
 %then go through and actually analyze the videos.
-for foldind = 1:length(subFolders)
+parfor foldind = 1:length(subFolders)
     if trackFolder(foldind)
         track_whiskers2([vidFolder subFolders{foldind} '/'], 'startCentroid',...
             startCentroids{foldind}, 'saveFolder',...

@@ -24,10 +24,10 @@ diskRad10 = strel('disk',10,8);
 diskRad25 = strel('disk',25,8);
 
 files = dir([folder '*.tif']);
-%make background the mean of three random videos
-randints = randi(length(files), 1, 3);
+%make background the mean of8 random videos
+randints = randi(length(files), 1, 8);
 InfoImage=imfinfo([folder files(1).name]);
-bg = zeros(InfoImage(1).Height, InfoImage(1).Width, 3);
+bg = zeros(InfoImage(1).Height, InfoImage(1).Width, 8);
 for index = 1:length(randints)
     i = randints(index);
     if i == 1 && isempty(startCentroid)
@@ -63,9 +63,9 @@ nogoM = zeros(size(bg,1), size(bg,2));
 nogoM(15:end-15, 15:end-15)=1;
 nogoM = ~nogoM;
 
-background = min(bg(:,:,:),[],3);
+mean_background = mean(bg(:,:,:),3);
 
-parfor i  = 1:numel(files);
+for i  = 1:6%1:numel(files);
     tic
    
     if record;
@@ -98,6 +98,11 @@ parfor i  = 1:numel(files);
     %create the tracking variables
     position = zeros(size(ImgData,3), 2);
     Fi = 1; weirdFuckUpLog = [];
+    
+    %join the background between this one and the general purpose one
+    t_bg = zeros(size(ImgData,1), size(ImgData,2), 2);
+    t_bg(:,:,1) = mean_background;
+    t_bg(:,:,2) = imopen(mean(ImgData,3),diskRad10);
     for iv=1:size(ImgData,3);
         
         

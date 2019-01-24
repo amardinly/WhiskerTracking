@@ -8,9 +8,9 @@
 
 % imagesc(nu(:,:,2)-mean(cat(3,mean(nu,3), bg),3));
 clear all;
-search_folder = 'E:\Alan\180620_8923\'
+search_folder = 'E:\Alan\180621_9149\'
 do_plot=false
-use_beh_file = true
+use_beh_file = false
 % meanPreStimVels = zeros(1, n_vids);
 % peakDurStimVels = zeros(1, n_vids);
 % meanDurStimVels = zeros(1, n_vids);
@@ -32,15 +32,15 @@ end
 
 %%
 save=true;
-for i=1:length(files)
+for i=25:length(files)
     if mod(i,25)==0
-        [centroids, good_frames] = track_whisker_single_video(...
-                    [search_folder files(i).name], bg, false, false, save, true);
+        [centroids, good_frames] = track_whisker_single_video2(...
+                    [search_folder files(i).name], bg, false, false, save, false);
     elseif i < 10
-        [centroids, good_frames] = track_whisker_single_video(...
+        [centroids, good_frames] = track_whisker_single_video2(...
                     [search_folder files(i).name], bg, true, false, save, false);
     else
-        [centroids, good_frames] = track_whisker_single_video(...
+        [centroids, good_frames] = track_whisker_single_video2(...
                     [search_folder files(i).name], bg, false, false, save, false);
     end
             if do_plot
